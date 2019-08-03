@@ -1,0 +1,16 @@
+constructor
+- Good for initializing the state of the component.
+- The place where you will bind your function to the current context of the component,
+  if you are not using an arrow function then you need to bind it in the constructor.
+
+componentDidMount
+- Good for setting up a listener or ajax call to fetch the data required for the component
+
+componentDidUpdate
+- Good for ajax call or reset the listener after a state or props are changed
+
+componentDidUnmount
+- Good for removing listener to prevent memory leaks
+
+render
+- Always will be called once the state is updated.
