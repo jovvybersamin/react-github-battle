@@ -1,76 +1,90 @@
-import React from "react";
+import React, { useReducer, useState, useEffect } from "react";
 import { stringify } from "querystring";
 import { fetchPopularRepos } from "./utils/api";
 import NavPopular from "./common/NavPopular";
 import ReposGrid from "./common/ReposGrid";
 import Loading from "./common/Loading";
 
-export default class Popular extends React.Component {
-  state = {
-    selectedLanguage: "All",
-    error: null,
-    repos: {}
-  };
-
-  componentDidMount() {
-    this.updateLanguage(this.state.selectedLanguage);
-  }
-
-  updateLanguage = selectedLanguage => {
-    this.setState({
-      selectedLanguage,
+function fetchReducer(state, action) {
+  if (action.type === "FETCH_INIT") {
+    return {
+      ...state,
+      loading: true,
+      repos: {
+        ...state.repos,
+        [action.language]: null
+      }
+    };
+  } else if (action.type === "FETCH_ERROR") {
+    return {
+      ...state,
+      repos: {
+        ...state.repos,
+        [action.language]: action.data
+      },
+      loading: false,
+      error: action.error
+    };
+  } else if (action.type === "FETCH_SUCCESS") {
+    return {
+      ...state,
+      repos: {
+        ...state.repos,
+        [action.language]: action.data
+      },
+      loading: false,
       error: null
-    });
-
-    if (!this.state.repos[selectedLanguage]) {
-      this.setState({
-        repos: {
-          [selectedLanguage]: null
-        }
-      });
-
-      const repos = { ...this.state.repos };
-      fetchPopularRepos(selectedLanguage)
-        .then(data => {
-          console.log(data);
-          this.setState({
-            repos: {
-              ...repos,
-              [selectedLanguage]: data
-            }
-          });
-        })
-        .catch(() => {
-          console.warn("Error fetch repos: ", error);
-
-          this.setState({
-            error: "Error: There was an error fetching the repositories"
-          });
-        });
-    }
-  };
-
-  isLoading = () => {
-    const { repos, selectedLanguage, error } = this.state;
-    return repos[selectedLanguage] === null && error === null;
-  };
-
-  render() {
-    const { selectedLanguage, error, repos } = this.state;
-
-    return (
-      <React.Fragment>
-        <NavPopular
-          selected={selectedLanguage}
-          onUpdateLanguage={this.updateLanguage}
-        />
-
-        {this.isLoading() && <Loading content="Fetching repos" />}
-        {error && <p className="center-text error">{error}</p>}
-        {repos[selectedLanguage] && (
-          <ReposGrid repos={repos[selectedLanguage]} />
-        )}
-      </React.Fragment>
-    );
+    };
+  } else if (action.type === "FETCH_CACHED") {
+    return {
+      repos: {
+        ...state.repos
+      },
+      loading: false,
+      error: null
+    };
+  } else {
+    throw new Error(`Action Type: ${action.type} is not supported!`);
   }
+}
+
+const initialFetchState = {
+  error: null,
+  loading: true,
+  repos: []
+};
+
+export default function Popular() {
+  const [state, dispatch] = useReducer(fetchReducer, initialFetchState);
+  const [language, setLanguage] = useState("All");
+
+  useEffect(() => {
+    if (state.repos[language]) {
+      dispatch({ type: "FETCH_CACHED" });
+      return;
+    }
+
+    dispatch({ type: "FETCH_INIT", language: language });
+    fetchPopularRepos(language)
+      .then(data => {
+        dispatch({ type: "FETCH_SUCCESS", language, data });
+      })
+      .catch(error => {});
+  }, [language]);
+
+  if (state.loading === true) {
+    return <Loading content="Fetching repositories" />;
+  }
+
+  return (
+    <React.Fragment>
+      <NavPopular
+        selected={language}
+        onUpdateLanguage={lang => setLanguage(lang)}
+      />
+
+      {state.error && <p className="center-text error">{state.error}</p>}
+      {state.repos[language] && <ReposGrid repos={state.repos[language]} />}
+    </React.Fragment>
+  );
 }

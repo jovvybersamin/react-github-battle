@@ -15,7 +15,7 @@ const styles = {
 export default class Loading extends React.Component {
   static propTypes = {
     content: PropTypes.string,
-    speed: PropTypes.num
+    speed: PropTypes.number
   };
 
   static defaultProps = {
