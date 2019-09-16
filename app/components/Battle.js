@@ -7,8 +7,94 @@ import {
 } from "react-icons/fa";
 import PropTypes from "prop-types";
 import Results from "./Results";
-import { ThemeConsumer } from "../contexts/theme.js";
+import ThemeContext, { ThemeConsumer } from "../contexts/theme.js";
 import { Link } from "react-router-dom";
+
+export default function Battle() {
+  const [playerOne, setPlayerOne] = React.useState(null);
+  const [playerTwo, setPlayerTwo] = React.useState(null);
+
+  return (
+    <>
+      <Instructions />
+      <div className="players-container">
+        <h1 className="center-text">Players</h1>
+        <div className="row space-around">
+          {playerOne === null ? (
+            <PlayerInput
+              label="Player One"
+              onSubmit={player => setPlayerOne(player)}
+            />
+          ) : (
+            <PlayerPreview
+              username={playerOne}
+              label="Player One"
+              onReset={() => setPlayerOne(null)}
+            />
+          )}
+
+          {playerTwo === null ? (
+            <PlayerInput
+              label="Player Two"
+              onSubmit={player => setPlayerTwo(player)}
+            />
+          ) : (
+            <PlayerPreview
+              username={playerTwo}
+              label="Player Two"
+              onReset={() => setPlayerTwo(null)}
+            />
+          )}
+        </div>
+
+        {playerOne && playerTwo && (
+          <Link
+            className="btn btn-dark btn-space"
+            to={{
+              pathname: "/battle/results",
+              search: `?playerOne=${playerOne}&playerTwo=${playerTwo}`
+            }}
+          >
+            Battle
+          </Link>
+        )}
+      </div>
+    </>
+  );
+}
+
+function PlayerInput({ onSubmit, label }) {
+  const [username, setUsername] = React.useState("");
+  const theme = React.useContext(ThemeContext);
+
+  return (
+    <>
+      <form className="column player" onSubmit={() => onSubmit(username)}>
+        <label htmlFor="username" className="player-label">
+          {label}
+        </label>
+        <div className="row player-inputs">
+          <input
+            type="text"
+            name="username"
+            value={username}
+            className={`input-${theme}`}
+            placeholder="github username"
+            autoComplete="off"
+            onChange={({ target: input }) => setUsername(input.value)}
+          />
+          <button
+            type="submit"
+            className={`btn ${theme === "light" ? "btn-dark" : "btn-light"}`}
+            disabled={!username}
+          >
+            SUBMIT
+          </button>
+        </div>
+      </form>
+    </>
+  );
+}
 
 function Instructions() {
   return (
@@ -73,130 +159,4 @@ function PlayerPreview({ username, onReset, label }) {
       )}
     </ThemeConsumer>
   );
-}
-
-class PlayerInput extends React.Component {
-  state = {
-    username: ""
-  };
-
-  handleSubmit = e => {
-    e.preventDefault();
-    this.props.onSubmit(this.state.username);
-  };
-
-  handleChange = ({ target: input }) => {
-    this.setState({
-      [input.name]: input.value
-    });
-  };
-
-  render() {
-    return (
-      <ThemeConsumer>
-        {({ theme }) => (
-          <form className="column player" onSubmit={this.handleSubmit}>
-            <label htmlFor="username" className="player-label">
-              {this.props.label}
-            </label>
-            <div className="row player-inputs">
-              <input
-                type="text"
-                name="username"
-                value={this.state.username}
-                className={`input-${theme}`}
-                placeholder="github username"
-                autoComplete="off"
-                onChange={this.handleChange}
-              />
-              <button
-                type="submit"
-                className={`btn ${
-                  theme === "light" ? "btn-dark" : "btn-light"
-                }`}
-                disabled={!this.state.username}
-              >
-                SUBMIT
-              </button>
-            </div>
-          </form>
-        )}
-      </ThemeConsumer>
-    );
-  }
-}
-
-export default class Battle extends React.Component {
-  state = {
-    playerOne: null,
-    playerTwo: null
-  };
-
-  handleSubmit = (id, player) => {
-    this.setState({
-      [id]: player
-    });
-  };
-
-  handleReset = id => {
-    this.setState({
-      [id]: null
-    });
-  };
-
-  render() {
-    const { playerOne, playerTwo } = this.state;
-
-    return (
-      <ThemeConsumer>
-        {({ theme }) => (
-          <React.Fragment>
-            <Instructions />
-            <div className="players-container">
-              <h1 className="center-text">Players</h1>
-              <div className="row space-around">
-                {playerOne === null ? (
-                  <PlayerInput
-                    label="Player One"
-                    onSubmit={player => this.handleSubmit("playerOne", player)}
-                  />
-                ) : (
-                  <PlayerPreview
-                    username={this.state.playerOne}
-                    label="Player One"
-                    onReset={() => this.handleReset("playerOne")}
-                  />
-                )}
-
-                {playerTwo === null ? (
-                  <PlayerInput
-                    label="Player Two"
-                    onSubmit={player => this.handleSubmit("playerTwo", player)}
-                  />
-                ) : (
-                  <PlayerPreview
-                    username={this.state.playerTwo}
-                    label="Player Two"
-                    onReset={() => this.handleReset("playerTwo")}
-                  />
-                )}
-              </div>
-
-              {playerOne && playerTwo && (
-                <Link
-                  className="btn btn-dark btn-space"
-                  to={{
-                    pathname: "/battle/results",
-                    search: `?playerOne=${playerOne}&playerTwo=${playerTwo}`
-                  }}
-                >
-                  Battle
-                </Link>
-              )}
-            </div>
-          </React.Fragment>
-        )}
-      </ThemeConsumer>
-    );
-  }
 }

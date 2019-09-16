@@ -19,8 +19,7 @@ function fetchReducer(state, action) {
     return {
       ...state,
       repos: {
-        ...state.repos,
-        [action.language]: action.data
+        ...state.repos
       },
       loading: false,
       error: action.error
@@ -69,7 +68,9 @@ export default function Popular() {
       .then(data => {
         dispatch({ type: "FETCH_SUCCESS", language, data });
       })
-      .catch(error => {});
+      .catch(error => {
+        dispatch({ type: "FETCH_ERROR" });
+      });
   }, [language]);
 
   if (state.loading === true) {
