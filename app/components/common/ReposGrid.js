@@ -7,6 +7,7 @@ import {
   FaExclamationTriangle
 } from "react-icons/fa";
 import Card from "./../Card";
+import Tooltip from "./Tooltip";
 
 function ReposGrid({ repos }) {
   return (
@@ -33,12 +34,17 @@ function ReposGrid({ repos }) {
             >
               <ul className="card-list">
                 <li>
-                  <FaUser color="rgb(255,191,116)" size={22} />
-                  <a href={`https://github.com/${login}`}>{login}</a>
+                  <Tooltip text="Github User">
+                    <FaUser color="rgb(255,191,116)" size={22} />
+                    <a href={`https://github.com/${login}`}>{login}</a>
+                  </Tooltip>
                 </li>
+
                 <li>
-                  <FaStar color="rgb(255,215,0)" size={22} />
-                  {stargazers_count.toLocaleString()} stars
+                  <Tooltip text="Repo Stars">
+                    <FaStar color="rgb(255,215,0)" size={22} />
+                    {stargazers_count.toLocaleString()} stars
+                  </Tooltip>
                 </li>
                 <li>
                   <FaCodeBranch color="rgb(129,195,245)" size={22} />
