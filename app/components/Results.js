@@ -14,76 +14,84 @@ import Tooltip from "./common/Tooltip";
 import queryString from "query-string";
 import { Link } from "react-router-dom";
 
-export default class Results extends React.Component {
-  state = {
-    winner: null,
-    loser: null,
-    error: null,
-    loading: true
-  };
+function resultReducer(state, action) {
+  if (action.type === "WINNER") {
+    return {
+      winner: action.winner,
+      loser: action.loser,
+      error: null,
+      loading: false
+    };
+  } else if (action.type === "ERROR") {
+    return {
+      winner: null,
+      loser: null,
+      error: action.error,
+      loading: false
+    };
+  } else {
+    throw new Error(`Action Type: ${action.type} is not supported`);
+  }
+}
 
-  componentDidMount() {
-    const { playerOne, playerTwo } = queryString.parse(
-      this.props.location.search
-    );
+export default function Results({ location }) {
+  const [{ winner, loser, error, loading }, dispatch] = React.useReducer(
+    resultReducer,
+    {
+      winner: null,
+      loser: null,
+      error: null,
+      loading: true
+    }
+  );
 
+  React.useEffect(() => {
+    const { playerOne, playerTwo } = queryString.parse(location.search);
     battle([playerOne, playerTwo])
       .then(players => {
-        this.setState({
-          winner: players[0],
-          loser: players[1],
-          error: null,
-          loading: false
-        });
+        dispatch({ type: "WINNER", winner: players[0], loser: players[1] });
       })
       .catch(({ message }) => {
-        this.setState({
-          error: message,
-          loading: false
-        });
+        dispatch({ type: "ERROR", error: message });
       });
+  }, []);
+
+  if (loading === true) {
+    return <Loading content="Battling" speed={300} />;
   }
 
-  render() {
-    const { winner, loser, error, loading } = this.state;
-
-    if (loading === true) {
-      return <Loading content="Battling" speed={300} />;
-    }
-
-    if (error) {
-      return <p className="center-text error">{error}</p>;
-    }
-
-    return (
-      <React.Fragment>
-        <div className="grid space-around container-sm">
-          <Card
-            header={winner.score === loser.score ? "Tie" : "Winner"}
-            subHeader={`Score: ${winner.score.toLocaleString()}`}
-            avatar={winner.profile.avatar_url}
-            href={winner.profile.html_url}
-            name={winner.profile.login}
-          >
-            <ProfileList profile={winner.profile} />
-          </Card>
-
-          <Card
-            header={loser.score === winner.score ? "Tie" : "Loser"}
-            subHeader={`Score: ${loser.score.toLocaleString()}`}
-            avatar={loser.profile.avatar_url}
-            href={loser.profile.html_url}
-            name={loser.profile.login}
-          >
-            <ProfileList profile={loser.profile} />
-          </Card>
-        </div>
-        <Link to="/battle" className="btn btn-dark btn-space">
-          Reset
-        </Link>
-      </React.Fragment>
-    );
+  if (error) {
+    return <p className="center-text error">{error}</p>;
   }
+
+  return (
+    <React.Fragment>
+      <div className="grid space-around container-sm">
+        <Card
+          header={winner.score === loser.score ? "Tie" : "Winner"}
+          subHeader={`Score: ${winner.score.toLocaleString()}`}
+          avatar={winner.profile.avatar_url}
+          href={winner.profile.html_url}
+          name={winner.profile.login}
+        >
+          <ProfileList profile={winner.profile} />
+        </Card>
+
+        <Card
+          header={loser.score === winner.score ? "Tie" : "Loser"}
+          subHeader={`Score: ${loser.score.toLocaleString()}`}
+          avatar={loser.profile.avatar_url}
+          href={loser.profile.html_url}
+          name={loser.profile.login}
+        >
+          <ProfileList profile={loser.profile} />
+        </Card>
+      </div>
+      <Link to="/battle" className="btn btn-dark btn-space">
+        Reset
+      </Link>
+    </React.Fragment>
+  );
 }
 
 function ProfileList({ profile }) {

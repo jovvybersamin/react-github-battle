@@ -7,7 +7,7 @@ import {
 } from "react-icons/fa";
 import PropTypes from "prop-types";
 import Results from "./Results";
-import ThemeContext, { ThemeConsumer } from "../contexts/theme.js";
+import ThemeContext from "../contexts/theme.js";
 import { Link } from "react-router-dom";
 
 export default function Battle() {
@@ -65,7 +65,7 @@ export default function Battle() {
 
 function PlayerInput({ onSubmit, label }) {
   const [username, setUsername] = React.useState("");
-  const theme = React.useContext(ThemeContext);
+  const { theme } = React.useContext(ThemeContext);
 
   return (
     <>
@@ -97,7 +97,7 @@ function PlayerInput({ onSubmit, label }) {
 }
 
 function Instructions() {
-  const theme = React.useContext(ThemeContext);
+  const { theme } = React.useContext(ThemeContext);
   return (
     <div className="instructions-container ">
       <h1 className="center-text header-lg">Instructions</h1>
@@ -128,7 +128,7 @@ function Instructions() {
 }
 
 function PlayerPreview({ username, onReset, label }) {
-  const theme = React.useContext(ThemeContext);
+  const { theme } = React.useContext(ThemeContext);
   return (
     <div className="column player">
       <h3 className="player-label">{label}</h3>
